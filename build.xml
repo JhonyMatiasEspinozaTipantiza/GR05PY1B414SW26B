@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="GR05PY1B414SW26B" default="default" basedir=".">
+    <description>Builds, tests, and runs the project GR05PY1B414SW26B.</description>
+    <import file="nbproject/build-impl.xml"/>
+</project>
