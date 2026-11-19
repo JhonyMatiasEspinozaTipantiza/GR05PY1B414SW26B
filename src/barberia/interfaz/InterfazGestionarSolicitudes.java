@@ -28,8 +28,6 @@ public class InterfazGestionarSolicitudes extends JDialog {
 
     private ProponerCitaAlCliente proponer;
 
-    private ArrayList<Cita> pendientes = new ArrayList<>();
-    private ArrayList<Cita> resultados = new ArrayList<>();
     private DefaultTableModel modeloPendientes = new DefaultTableModel(COLUMNAS, 0) {
         @Override
         public boolean isCellEditable(int f, int c) {
@@ -101,9 +99,7 @@ public class InterfazGestionarSolicitudes extends JDialog {
     }
 
     public void mostrarSolicitudesPendientes() {
-        pendientes = proponer.listarPendientes();
-        llenar(modeloPendientes, pendientes);
-        llenar(modeloResultados, resultados);
+        llenar(modeloPendientes, proponer.listarPendientes());
     }
 
     public void seleccionarSolicitud(int idCita) {
@@ -130,8 +126,19 @@ public class InterfazGestionarSolicitudes extends JDialog {
     }
 
     public void mostrarResultado(Cita cita) {
-        if (!resultados.contains(cita)) {
-            resultados.add(cita);
+        // si la cita ya esta en resultados se actualiza su fila
+        Object[] fila = filaDe(cita);
+        boolean existe = false;
+        for (int i = 0; i < modeloResultados.getRowCount(); i++) {
+            if (modeloResultados.getValueAt(i, 0).equals(cita.getId())) {
+                for (int c = 0; c < fila.length; c++) {
+                    modeloResultados.setValueAt(fila[c], i, c);
+                }
+                existe = true;
+            }
+        }
+        if (!existe) {
+            modeloResultados.addRow(fila);
         }
         String barbero = cita.getBarbero() == null ? "" : " con " + cita.getBarbero().getNombre();
         lblAviso.setText("Cita #" + cita.getId() + ": " + cita.getEstado() + barbero);
@@ -148,15 +155,19 @@ public class InterfazGestionarSolicitudes extends JDialog {
             mostrarError("Seleccione una solicitud pendiente.");
             return;
         }
-        seleccionarSolicitud(pendientes.get(fila).getId());
+        seleccionarSolicitud((Integer) modeloPendientes.getValueAt(fila, 0));
     }
 
     private void llenar(DefaultTableModel modelo, ArrayList<Cita> citas) {
-        DateTimeFormatter f = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         modelo.setRowCount(0);
         for (Cita c : citas) {
-            modelo.addRow(new Object[]{c.getId(), c.getSolicitante(), c.getServicio().getNombre(), c.getFecha().format(f),
-                c.getHora() + " - " + c.getHoraFin(), c.getEstado(), c.getBarbero() == null ? "-" : c.getBarbero().getNombre()});
+            modelo.addRow(filaDe(c));
         }
+    }
+
+    private Object[] filaDe(Cita c) {
+        DateTimeFormatter f = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        return new Object[]{c.getId(), c.getSolicitante(), c.getServicio().getNombre(), c.getFecha().format(f),
+            c.getHora() + " - " + c.getHoraFin(), c.getEstado(), c.getBarbero() == null ? "-" : c.getBarbero().getNombre()};
     }
 }
