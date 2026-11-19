@@ -61,6 +61,11 @@ public class ResolverRespuestaAlCliente {
         if (LocalDateTime.of(fecha, hora).isBefore(LocalDateTime.now())) {
             throw new IllegalArgumentException("La fecha y hora ya pasaron, elija una posterior.");
         }
+        // la cita solo se puede pedir hasta 31 dias desde hoy
+        if (fecha.isAfter(LocalDate.now().plusDays(31))) {
+            throw new IllegalArgumentException("La fecha no puede ser mayor a 31 dias desde hoy (maximo "
+                    + LocalDate.now().plusDays(31).format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) + ").");
+        }
         cita.reprogramar(fecha, hora);
         almacen.guardarCita(cita);
         proponer.proponerCita(idCita);

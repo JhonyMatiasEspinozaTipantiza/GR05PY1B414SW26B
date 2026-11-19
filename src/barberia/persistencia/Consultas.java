@@ -79,9 +79,9 @@ public class Consultas {
     }
 
     // true si el barbero ya tiene otra cita propuesta o agendada que choca con ese horario
-    public boolean hayCruce(Barbero b, LocalDate fecha, LocalTime ini, LocalTime fin, Cita cita) {
+    public boolean hayCruce(Barbero barbero, LocalDate fecha, LocalTime ini, LocalTime fin, Cita cita) {
         for (Cita otra : almacen.getCitas()) {
-            if (otra == cita || otra.getBarbero() != b || !otra.getFecha().equals(fecha)) {
+            if (otra == cita || otra.getBarbero() != barbero || !otra.getFecha().equals(fecha)) {
                 continue;
             }
             if (otra.getEstado() != EstadoCita.PROPUESTA && otra.getEstado() != EstadoCita.AGENDADA) {

@@ -70,8 +70,8 @@ public class MantenerHorariosDeBarberos {
         return b;
     }
 
-    private Horario buscarHorario(Barbero b, DayOfWeek dia, LocalTime inicio) {
-        for (Horario h : b.getHorarios()) {
+    private Horario buscarHorario(Barbero barbero, DayOfWeek dia, LocalTime inicio) {
+        for (Horario h : barbero.getHorarios()) {
             if (h.getDia() == dia && h.getInicio().equals(inicio)) {
                 return h;
             }

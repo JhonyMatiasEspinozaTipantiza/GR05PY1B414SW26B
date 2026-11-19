@@ -8,7 +8,6 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -27,7 +26,6 @@ public class InterfazAdministrarHorarios extends JDialog {
 
     private MantenerHorariosDeBarberos mantener;
 
-    private ArrayList<Horario> horarios = new ArrayList<>();
     private JComboBox<Barbero> cmbBarbero = new JComboBox<>();
     private JComboBox<String> cmbDia = new JComboBox<>(DIAS);
     private JComboBox<LocalTime> cmbInicio = new JComboBox<>();
@@ -50,9 +48,6 @@ public class InterfazAdministrarHorarios extends JDialog {
         }
         cmbInicio.setSelectedItem(LocalTime.of(9, 0));
         cmbFin.setSelectedItem(LocalTime.of(13, 0));
-        for (Barbero b : mantener.listarBarberos()) {
-            cmbBarbero.addItem(b);
-        }
         cmbBarbero.setName("cmbBarbero");
         cmbDia.setName("cmbDia");
         cmbInicio.setName("cmbInicio");
@@ -62,10 +57,9 @@ public class InterfazAdministrarHorarios extends JDialog {
         tblHorarios.getSelectionModel().addListSelectionListener(e -> {
             int f = tblHorarios.getSelectedRow();
             if (!e.getValueIsAdjusting() && f >= 0) {
-                Horario h = horarios.get(f);
-                cmbDia.setSelectedIndex(h.getDia().getValue() - 1);
-                cmbInicio.setSelectedItem(h.getInicio());
-                cmbFin.setSelectedItem(h.getFin());
+                cmbDia.setSelectedItem(modelo.getValueAt(f, 0));
+                cmbInicio.setSelectedItem(modelo.getValueAt(f, 1));
+                cmbFin.setSelectedItem(modelo.getValueAt(f, 2));
             }
         });
         cmbBarbero.addActionListener(e -> {
@@ -126,10 +120,25 @@ public class InterfazAdministrarHorarios extends JDialog {
         setLocationRelativeTo(null);
     }
 
+    // al abrir la ventana se cargan los barberos y los horarios del primero
+    @Override
+    public void setVisible(boolean visible) {
+        if (visible) {
+            cmbBarbero.removeAllItems();
+            for (Barbero b : mantener.listarBarberos()) {
+                cmbBarbero.addItem(b);
+            }
+            if (cmbBarbero.getItemCount() > 0) {
+                cmbBarbero.setSelectedIndex(0);
+                mostrarHorarios(idBarbero());
+            }
+        }
+        super.setVisible(visible);
+    }
+
     public void mostrarHorarios(int idBarbero) {
-        horarios = mantener.listarHorarios(idBarbero);
         modelo.setRowCount(0);
-        for (Horario h : horarios) {
+        for (Horario h : mantener.listarHorarios(idBarbero)) {
             modelo.addRow(new Object[]{DIAS[h.getDia().getValue() - 1], h.getInicio(), h.getFin()});
         }
     }
@@ -194,12 +203,13 @@ public class InterfazAdministrarHorarios extends JDialog {
             mostrarError("Seleccione el horario que desea editar.");
             return;
         }
-        Horario h = horarios.get(f);
-        if (dia() != h.getDia()) {
+        DayOfWeek diaFila = DayOfWeek.of(java.util.Arrays.asList(DIAS).indexOf(modelo.getValueAt(f, 0)) + 1);
+        if (dia() != diaFila) {
             mostrarError("Para cambiar el dia elimine el horario y cree uno nuevo.");
             return;
         }
-        editarHorario(idBarbero(), h.getDia(), h.getInicio(), (LocalTime) cmbInicio.getSelectedItem(), (LocalTime) cmbFin.getSelectedItem());
+        editarHorario(idBarbero(), diaFila, (LocalTime) modelo.getValueAt(f, 1), (LocalTime) cmbInicio.getSelectedItem(),
+                (LocalTime) cmbFin.getSelectedItem());
     }
 
     private void eliminarClick() {
@@ -208,10 +218,12 @@ public class InterfazAdministrarHorarios extends JDialog {
             mostrarError("Seleccione el horario que desea eliminar.");
             return;
         }
-        Horario h = horarios.get(f);
-        int r = JOptionPane.showConfirmDialog(this, "Eliminar el horario " + h + "?", "Eliminar horario", JOptionPane.YES_NO_OPTION);
+        DayOfWeek diaFila = DayOfWeek.of(java.util.Arrays.asList(DIAS).indexOf(modelo.getValueAt(f, 0)) + 1);
+        LocalTime inicio = (LocalTime) modelo.getValueAt(f, 1);
+        String texto = modelo.getValueAt(f, 0) + " " + inicio + " - " + modelo.getValueAt(f, 2);
+        int r = JOptionPane.showConfirmDialog(this, "Eliminar el horario " + texto + "?", "Eliminar horario", JOptionPane.YES_NO_OPTION);
         if (r == JOptionPane.YES_OPTION) {
-            eliminarHorario(idBarbero(), h.getDia(), h.getInicio());
+            eliminarHorario(idBarbero(), diaFila, inicio);
         }
     }
 }

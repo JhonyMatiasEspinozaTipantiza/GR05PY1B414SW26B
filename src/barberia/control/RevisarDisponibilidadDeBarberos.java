@@ -37,13 +37,16 @@ public class RevisarDisponibilidadDeBarberos {
         return false;
     }
 
-    // horarios libres de los proximos 14 dias, cada media hora
+    // horarios libres de los proximos 14 dias (sin pasar de 31 dias desde hoy), cada media hora
     public ArrayList<String> listarHorariosLibres(Cita cita) {
         ArrayList<String> libres = new ArrayList<>();
         DateTimeFormatter formato = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         LocalDate desde = cita.getFecha().isBefore(LocalDate.now()) ? LocalDate.now() : cita.getFecha();
         for (int d = 0; d < 14; d++) {
             LocalDate fecha = desde.plusDays(d);
+            if (fecha.isAfter(LocalDate.now().plusDays(31))) {
+                break;
+            }
             for (LocalTime t = LocalTime.of(8, 0); !t.isAfter(LocalTime.of(20, 0)); t = t.plusMinutes(30)) {
                 if (LocalDateTime.of(fecha, t).isBefore(LocalDateTime.now())) {
                     continue;
